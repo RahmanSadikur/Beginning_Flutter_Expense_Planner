@@ -1,4 +1,5 @@
 import 'package:expenseplanner/models/transaction.dart';
+import 'package:expenseplanner/widgets/chart_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -7,7 +8,6 @@ class Chart extends StatelessWidget {
   Chart(this._recentTransaction);
   List<Map<String, Object>> get groupTransactionValues {
     return List.generate(7, (index) {
-      print(_recentTransaction);
       final weekday = DateTime.now().subtract(Duration(days: index));
       double totalSum = 0.0;
       for (var i = 0; i < _recentTransaction.length; i++) {
@@ -25,14 +25,27 @@ class Chart extends StatelessWidget {
     });
   }
 
+  double get maxSpending {
+    return groupTransactionValues.fold(0.0, (sum, item) {
+      return sum + item['amount'];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    print(groupTransactionValues);
     return Card(
       elevation: 6,
       margin: EdgeInsets.all(10),
       child: Row(
-        children: groupTransactionValues.map((e) {}).toList(),
+        children: groupTransactionValues.map((e) {
+          var b = (e['amount'] as double) / maxSpending;
+
+          return ChartBar(
+            label: e['day'],
+            spendingAmount: e['amount'],
+            spendingPctOfAmount: b,
+          );
+        }).toList(),
       ),
     );
   }
