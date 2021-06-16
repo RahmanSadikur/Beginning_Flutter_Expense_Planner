@@ -90,10 +90,7 @@ class _ExpensePlannerState extends State<ExpensePlanner> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Container(
-                  width: double.infinity,
-                  child: Chart(_recentTransaction),
-                ),
+                Chart(_recentTransaction),
                 Transaction_list(_transaction),
               ],
             ),
