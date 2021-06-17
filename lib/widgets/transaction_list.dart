@@ -1,70 +1,72 @@
 import 'package:expenseplanner/models/transaction.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:intl/date_symbols.dart';
 import 'package:intl/intl.dart';
 
 class Transaction_list extends StatelessWidget {
   //const Transaction_list({Key? key}) : super(key: key);
-
+  final Function rmvTransaction;
   final List<Transaction> _transaction;
-  Transaction_list(this._transaction);
+  Transaction_list(this._transaction, this.rmvTransaction);
   @override
   Widget build(BuildContext context) {
+    final islandscap =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Container(
-      height: 300,
+      height: MediaQuery.of(context).size.height * 0.6,
       child: _transaction.isEmpty
-          ? Column(
-              children: <Widget>[
-                Container(
-                  child: Text(
-                    'No transaction added yet!',
-                    style: Theme.of(context).textTheme.title,
+          ? LayoutBuilder(builder: (context, Constraints) {
+              return Column(
+                children: <Widget>[
+                  Container(
+                    child: Text(
+                      'No transaction added yet!',
+                      style: Theme.of(context).textTheme.title,
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  height: 200,
-                  child: Image.asset(
-                    'assets/images/waiting.png',
-                    fit: BoxFit.cover,
+                  const SizedBox(
+                    height: 10,
                   ),
-                ),
-              ],
-            )
+                  Container(
+                    height: Constraints.maxHeight * .7,
+                    child: Image.asset(
+                      'assets/images/11.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ],
+              );
+            })
           : ListView.builder(
               itemBuilder: (context, index) {
                 return Card(
-                    child: Row(
-                  children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Theme.of(context).primaryColorDark,
-                              width: 2)),
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        '\$ ${_transaction[index].amount.toStringAsFixed(2)}',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            color: Theme.of(context).primaryColorDark),
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 30,
+                      child: Padding(
+                        padding: EdgeInsets.all(6),
+                        child: FittedBox(
+                          child: Text('\$${_transaction[index].amount}'),
+                        ),
                       ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          _transaction[index].name,
-                          style: Theme.of(context).textTheme.title,
-                        ),
-                        Text(DateFormat('yyyy/MM/dd')
-                            .format(_transaction[index].date)),
-                      ],
-                    )
-                  ],
-                ));
+                    title: Text(
+                      _transaction[index].name,
+                      style: Theme.of(context).textTheme.title,
+                    ),
+                    subtitle: Text(
+                        DateFormat.yMMMMd().format(_transaction[index].date)),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete),
+                      color: Theme.of(context).errorColor,
+                      onPressed: () {
+                        rmvTransaction(_transaction[index].id);
+                      },
+                    ),
+                  ),
+                );
               },
               itemCount: _transaction.length,
             ),
