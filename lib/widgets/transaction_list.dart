@@ -11,8 +11,6 @@ class Transaction_list extends StatelessWidget {
   Transaction_list(this._transaction, this.rmvTransaction);
   @override
   Widget build(BuildContext context) {
-    final islandscap =
-        MediaQuery.of(context).orientation == Orientation.landscape;
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       child: _transaction.isEmpty
@@ -58,13 +56,22 @@ class Transaction_list extends StatelessWidget {
                     ),
                     subtitle: Text(
                         DateFormat.yMMMMd().format(_transaction[index].date)),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete),
-                      color: Theme.of(context).errorColor,
-                      onPressed: () {
-                        rmvTransaction(_transaction[index].id);
-                      },
-                    ),
+                    trailing: MediaQuery.of(context).size.width > 360
+                        ? FlatButton.icon(
+                            icon: Icon(Icons.delete),
+                            label: Text('Delete'),
+                            textColor: Theme.of(context).errorColor,
+                            onPressed: () {
+                              rmvTransaction(_transaction[index].id);
+                            },
+                          )
+                        : IconButton(
+                            icon: Icon(Icons.delete),
+                            color: Theme.of(context).errorColor,
+                            onPressed: () {
+                              rmvTransaction(_transaction[index].id);
+                            },
+                          ),
                   ),
                 );
               },

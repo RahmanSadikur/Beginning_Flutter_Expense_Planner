@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:expenseplanner/widgets/chart.dart';
 import 'package:expenseplanner/widgets/new_transaction.dart';
 import 'package:expenseplanner/widgets/transaction_list.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,6 +60,7 @@ class _ExpensePlannerState extends State<ExpensePlanner> {
     // Transaction(id: 2, name: 'efg', amount: 30.00, date: DateTime.now()),
     // Transaction(id: 3, name: 'ijk', amount: 40.00, date: DateTime.now()),
   ];
+  bool shwChart = true;
   List<Transaction> get _recentTransaction {
     final today = DateTime.now();
     return _transaction.where((tx) {
@@ -86,6 +89,12 @@ class _ExpensePlannerState extends State<ExpensePlanner> {
     });
   }
 
+  void switchchange(bool v) {
+    setState(() {
+      shwChart = v;
+    });
+  }
+
   void _startAddNewTrasaction(BuildContext ctx) {
     showModalBottomSheet(
         context: ctx,
@@ -102,76 +111,103 @@ class _ExpensePlannerState extends State<ExpensePlanner> {
   Widget build(BuildContext context) {
     final islandscap =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    bool shwChart = false;
-    final appvar = AppBar(
-      title: Text(
-        'Expense Planner',
-      ),
-      actions: <Widget>[
-        IconButton(
-            onPressed: () {
-              _startAddNewTrasaction(context);
-            },
-            icon: Icon(Icons.add))
-      ],
+
+    final PreferredSizeWidget appvar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: Text(
+              'Expense Planner',
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                GestureDetector(
+                  child: Icon(CupertinoIcons.add),
+                  onTap: () {
+                    _startAddNewTrasaction(context);
+                  },
+                )
+              ],
+            ),
+          )
+        : AppBar(
+            title: Text(
+              'Expense Planner',
+            ),
+            actions: <Widget>[
+              IconButton(
+                  onPressed: () {
+                    _startAddNewTrasaction(context);
+                  },
+                  icon: Icon(Icons.add))
+            ],
+          );
+    final txList = Container(
+      height: (MediaQuery.of(context).size.height -
+              appvar.preferredSize.height -
+              MediaQuery.of(context).padding.top) *
+          0.7,
+      child: Transaction_list(_transaction, _removeTransaction),
     );
-    return Scaffold(
-      appBar: appvar,
-      body: SingleChildScrollView(
+    final pageBody = SafeArea(
+      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-           if(islandscap) {
-                 Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text('Show bar'),
-                      Switch(
-                          value: shwChart,
-                          onChanged: (v) {
-                            setState(() {
-                              shwChart = v;
-                            });
-                          })
-                    ],
-                  )
-                  shwChart ?Container(
-                    height: (MediaQuery.of(context).size.height -
-                            appvar.preferredSize.height -
-                            MediaQuery.of(context).padding.top) *
-                        1,
-                    child: Chart(_recentTransaction),
-                  ): Container(
+            if (!islandscap)
+              Container(
+                height: (MediaQuery.of(context).size.height -
+                        appvar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.3,
+                child: Chart(_recentTransaction),
+              ),
+            if (!islandscap) txList,
+            if (islandscap)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Show bar',
+                    style: Theme.of(context).textTheme.title,
+                  ),
+                  Switch.adaptive(
+                      value: shwChart,
+                      onChanged: (v) {
+                        switchchange(v);
+                      })
+                ],
+              ),
+            if (shwChart && islandscap)
+              Container(
                 height: (MediaQuery.of(context).size.height -
                         appvar.preferredSize.height -
                         MediaQuery.of(context).padding.top) *
                     1,
-                child: Transaction_list(_transaction, _removeTransaction),)
-            }else{ Container(
-                    height: (MediaQuery.of(context).size.height -
-                            appvar.preferredSize.height -
-                            MediaQuery.of(context).padding.top) *
-                        0.3,
-                    child: Chart(_recentTransaction),
-                  ),
-            Container(
-                height: (MediaQuery.of(context).size.height -
-                        appvar.preferredSize.height -
-                        MediaQuery.of(context).padding.top) *
-                    0.7,
-                child: Transaction_list(_transaction, _removeTransaction),),
-            }
+                child: Chart(_recentTransaction),
+              ),
+            if (!shwChart && islandscap) txList,
           ],
         ),
       ),
-      floatingActionButtonLocation:
-          FloatingActionButtonLocation.miniCenterDocked,
-      floatingActionButton: Builder(
-        builder: (context) => FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () => _startAddNewTrasaction(context),
-        ),
-      ),
     );
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+            child: pageBody,
+            navigationBar: appvar,
+          )
+        : Scaffold(
+            appBar: appvar,
+            body: pageBody,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.miniCenterDocked,
+            floatingActionButton: Platform.isIOS
+                ? Container()
+                : Builder(
+                    builder: (context) => FloatingActionButton(
+                      child: Icon(Icons.add),
+                      onPressed: () => _startAddNewTrasaction(context),
+                    ),
+                  ),
+          );
   }
 }
